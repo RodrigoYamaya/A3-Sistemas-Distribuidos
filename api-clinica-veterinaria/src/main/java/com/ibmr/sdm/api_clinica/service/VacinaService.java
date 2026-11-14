@@ -5,7 +5,9 @@ import com.ibmr.sdm.api_clinica.mapper.VacinaMapper;
 import com.ibmr.sdm.api_clinica.model.dto.IntegracaoGovernoRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.VacinaRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.VacinaResponseDto;
+import com.ibmr.sdm.api_clinica.model.entities.Animal;
 import com.ibmr.sdm.api_clinica.model.entities.Vacina;
+import com.ibmr.sdm.api_clinica.model.entities.Veterinario;
 import com.ibmr.sdm.api_clinica.model.enums.TipoOperacaoIntegracao;
 import com.ibmr.sdm.api_clinica.repository.AnimalRepository;
 import com.ibmr.sdm.api_clinica.repository.VacinaRepository;
@@ -37,23 +39,25 @@ public class VacinaService {
 
     @Transactional
     public VacinaResponseDto cadastrar(VacinaRequestDto dto) {
-        validarRelacionamentos(dto.animalId(), dto.veterinarioId());
+        Animal animal = buscarAnimal(dto.animalId());
+        Veterinario veterinario = buscarVeterinario(dto.veterinarioId());
 
         Vacina vacina = vacinaMapper.toEntity(dto);
+        vacina.setAnimal(animal);
+        vacina.setVeterinario(veterinario);
 
-        //AQUI A vacina é salva localmente primeiro (cumprindo a premissa obrigatória)
+        // A vacina é salva localmente primeiro (cumprindo a premissa obrigatória) que uma das regras do escopo
         Vacina vacinaSalva = vacinaRepository.save(vacina);
 
-        // aqui chama a INTEGRAÇÃO: Dispara apenas se for antirrábica
+        // Dispara a integração apenas se for antirrábica que regra foi definida pelo escopo do trabalho
         if (vacinaSalva.getAntirrabica() != null && vacinaSalva.getAntirrabica()) {
             IntegracaoGovernoRequestDto integracaoDto = new IntegracaoGovernoRequestDto(
                     dto.animalId(),
                     vacinaSalva.getId(),
                     TipoOperacaoIntegracao.VACINA_ANTIRRABICA,
-                    UUID.randomUUID().toString() // Gera a chave de idempotência única
+                    UUID.randomUUID().toString()
             );
 
-            // Chama a comunicação de forma automática após o registro local;
             integracaoService.solicitarIntegracao(integracaoDto);
         }
 
@@ -83,10 +87,13 @@ public class VacinaService {
         Vacina vacinaExistente = vacinaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Vacina com ID " + id + " não encontrada"));
 
-        validarRelacionamentos(dto.animalId(), dto.veterinarioId());
+        Animal animal = buscarAnimal(dto.animalId());
+        Veterinario veterinario = buscarVeterinario(dto.veterinarioId());
 
         Vacina vacinaAtualizada = vacinaMapper.toEntity(dto);
         vacinaAtualizada.setId(vacinaExistente.getId());
+        vacinaAtualizada.setAnimal(animal);
+        vacinaAtualizada.setVeterinario(veterinario);
 
         vacinaAtualizada = vacinaRepository.save(vacinaAtualizada);
         return vacinaMapper.toDto(vacinaAtualizada);
@@ -100,12 +107,13 @@ public class VacinaService {
         vacinaRepository.deleteById(id);
     }
 
-    private void validarRelacionamentos(Long animalId, Long veterinarioId) {
-        if (!animalRepository.existsById(animalId)) {
-            throw new RecursoNaoEncontradoException("Animal com ID " + animalId + " não encontrado");
-        }
-        if (!veterinarioRepository.existsById(veterinarioId)) {
-            throw new RecursoNaoEncontradoException("Veterinário com ID " + veterinarioId + " não encontrado");
-        }
+    private Animal buscarAnimal(Long animalId) {
+        return animalRepository.findById(animalId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Animal com ID " + animalId + " não encontrado"));
+    }
+
+    private Veterinario buscarVeterinario(Long veterinarioId) {
+        return veterinarioRepository.findById(veterinarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + veterinarioId + " não encontrado"));
     }
 }
