@@ -3,11 +3,13 @@ package com.ibmr.sdm.api_clinica.service;
 import com.ibmr.sdm.api_clinica.Exceptions.RecursoNaoEncontradoException;
 import com.ibmr.sdm.api_clinica.Exceptions.RegraDeNegocioException;
 import com.ibmr.sdm.api_clinica.mapper.VinculoMicrochipMapper;
+import com.ibmr.sdm.api_clinica.model.dto.IntegracaoGovernoRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.VinculoMicrochipRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.VinculoMicrochipResponseDto;
 import com.ibmr.sdm.api_clinica.model.entities.Animal;
 import com.ibmr.sdm.api_clinica.model.entities.Veterinario;
 import com.ibmr.sdm.api_clinica.model.entities.VinculoMicrochip;
+import com.ibmr.sdm.api_clinica.model.enums.TipoOperacaoIntegracao;
 import com.ibmr.sdm.api_clinica.repository.AnimalRepository;
 import com.ibmr.sdm.api_clinica.repository.VeterinarioRepository;
 import com.ibmr.sdm.api_clinica.repository.VinculoMicrochipRepository;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class VinculoMicrochipService {
@@ -24,15 +27,18 @@ public class VinculoMicrochipService {
     private final VinculoMicrochipMapper microchipMapper;
     private final AnimalRepository animalRepository;
     private final VeterinarioRepository veterinarioRepository;
+    private final IntegracaoGovernoService integracaoService;
 
     public VinculoMicrochipService(VinculoMicrochipRepository microchipRepository,
                                    VinculoMicrochipMapper microchipMapper,
                                    AnimalRepository animalRepository,
-                                   VeterinarioRepository veterinarioRepository) {
+                                   VeterinarioRepository veterinarioRepository,
+                                   IntegracaoGovernoService integracaoService) {
         this.microchipRepository = microchipRepository;
         this.microchipMapper = microchipMapper;
         this.animalRepository = animalRepository;
         this.veterinarioRepository = veterinarioRepository;
+        this.integracaoService = integracaoService;
     }
 
     @Transactional
@@ -47,8 +53,7 @@ public class VinculoMicrochipService {
 
         Veterinario veterinario = veterinarioRepository.findById(dto.veterinarioId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + dto.veterinarioId() + " não encontrado"));
-        
-        // Validação para verificar a situação do veterinário. Veterinários com o status INATIVO não podem realizar o vínculo de microchip no animal.
+
         if (veterinario.getSituacao() != null && "INATIVO".equals(veterinario.getSituacao().name())) {
             throw new RegraDeNegocioException("O vínculo do microchip deve ser realizado por um veterinário ativo e autorizado.");
         }
@@ -64,7 +69,18 @@ public class VinculoMicrochipService {
         novoChip.setVeterinario(veterinario);
         novoChip.setDataVinculo(LocalDateTime.now());
 
-        return microchipMapper.toDto(microchipRepository.save(novoChip));
+        VinculoMicrochip chipSalvo = microchipRepository.saveAndFlush(novoChip);
+
+        // Dispara o cadastro/sincronização do animal na API governamental assim que ele ganha um microchip
+        IntegracaoGovernoRequestDto integracaoDto = new IntegracaoGovernoRequestDto(
+                animal.getId(),
+                null,
+                TipoOperacaoIntegracao.CADASTRO_ANIMAL,
+                UUID.randomUUID().toString()
+        );
+        integracaoService.solicitarIntegracao(integracaoDto);
+
+        return microchipMapper.toDto(chipSalvo);
     }
 
     public List<VinculoMicrochipResponseDto> listarHistoricoDoAnimal(Long animalId) {

@@ -91,6 +91,8 @@ public class IntegracaoGovernoService {
         IntegracaoGoverno integracao = integracaoRepository.findByChaveIdempotencia(dto.chaveIdempotencia())
                 .orElseGet(() -> integracaoMapper.toEntity(dto));
 
+        integracao.setAnimal(animal);
+        integracao.setVacina(vacina);
         integracao.setSituacao(SituacaoIntegracao.ENVIADO);
         integracao.setTentativas(integracao.getTentativas() + 1);
         integracao.setDataSolicitacao(LocalDateTime.now());

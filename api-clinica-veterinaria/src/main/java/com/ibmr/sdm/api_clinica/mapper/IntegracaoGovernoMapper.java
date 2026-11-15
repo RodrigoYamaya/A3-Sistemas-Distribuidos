@@ -10,11 +10,11 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface IntegracaoGovernoMapper {
 
-    @Mapping(source = "animalId", target = "animal.id")
-    @Mapping(source = "vacinaId", target = "vacina.id")
+    @Mapping(target = "animal", ignore = true)
+    @Mapping(target = "vacina", ignore = true)
     IntegracaoGoverno toEntity(IntegracaoGovernoRequestDto dto);
 
     @Mapping(source = "animal.id", target = "animalId")
-    @Mapping(source = "vacina.id", target = "vacinaId")
+    @Mapping(target = "vacinaId", expression = "java(entity.getVacina() != null ? entity.getVacina().getId() : null)")
     IntegracaoGovernoResponseDto toDto(IntegracaoGoverno entity);
 }

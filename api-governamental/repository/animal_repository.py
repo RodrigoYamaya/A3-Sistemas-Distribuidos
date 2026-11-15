@@ -10,3 +10,6 @@ def salvar_animal(db: Session, animal: AnimalGoverno) -> AnimalGoverno:
     db.commit()
     db.refresh(animal)
     return animal
+
+def listar_todos(db: Session):
+    return db.scalars(select(AnimalGoverno).order_by(AnimalGoverno.atualizado_em.desc())).all()

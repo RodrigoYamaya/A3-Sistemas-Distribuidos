@@ -28,7 +28,9 @@ public class AnimalService {
     private final EspecieRepository especieRepository;
     private final RacaRepository racaRepository;
 
-    public AnimalService(AnimalRepository animalRepository, AnimalMapper animalMapper, TutorRepository tutorRepository, EspecieRepository especieRepository, RacaRepository racaRepository) {
+    public AnimalService(AnimalRepository animalRepository, AnimalMapper animalMapper,
+                         TutorRepository tutorRepository, EspecieRepository especieRepository,
+                         RacaRepository racaRepository) {
         this.animalRepository = animalRepository;
         this.animalMapper = animalMapper;
         this.tutorRepository = tutorRepository;
@@ -66,7 +68,6 @@ public class AnimalService {
             raca = racaRepository.findById(animalDto.racaId())
                     .orElseThrow(() -> new RecursoNaoEncontradoException("Raça com ID " + animalDto.racaId() + " não encontrada"));
 
-            //verificar se raça que foi definida que realmente pertence a "especie",  que foi definida pelo escopo do professor
             if (!raca.getEspecie().getId().equals(especie.getId())) {
                 throw new RegraDeNegocioException("A raça selecionada não é compatível com a espécie informada.");
             }
@@ -126,6 +127,4 @@ public class AnimalService {
         Animal animalUpdate = animalRepository.save(animal);
         return animalMapper.toDto(animalUpdate);
     }
-
-
 }
