@@ -5,18 +5,22 @@ import com.ibmr.sdm.api_clinica.Exceptions.RegraDeNegocioException;
 import com.ibmr.sdm.api_clinica.mapper.AnimalMapper;
 import com.ibmr.sdm.api_clinica.model.dto.AnimalRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.AnimalResponseDto;
+import com.ibmr.sdm.api_clinica.model.dto.IntegracaoGovernoRequestDto;
 import com.ibmr.sdm.api_clinica.model.entities.Animal;
 import com.ibmr.sdm.api_clinica.model.entities.Especie;
 import com.ibmr.sdm.api_clinica.model.entities.Raca;
 import com.ibmr.sdm.api_clinica.model.entities.Tutor;
+import com.ibmr.sdm.api_clinica.model.enums.TipoOperacaoIntegracao;
 import com.ibmr.sdm.api_clinica.repository.AnimalRepository;
 import com.ibmr.sdm.api_clinica.repository.EspecieRepository;
 import com.ibmr.sdm.api_clinica.repository.RacaRepository;
 import com.ibmr.sdm.api_clinica.repository.TutorRepository;
+import com.ibmr.sdm.api_clinica.repository.VinculoMicrochipRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,15 +31,20 @@ public class AnimalService {
     private final TutorRepository tutorRepository;
     private final EspecieRepository especieRepository;
     private final RacaRepository racaRepository;
+    private final VinculoMicrochipRepository microchipRepository;
+    private final IntegracaoGovernoService integracaoService;
 
     public AnimalService(AnimalRepository animalRepository, AnimalMapper animalMapper,
                          TutorRepository tutorRepository, EspecieRepository especieRepository,
-                         RacaRepository racaRepository) {
+                         RacaRepository racaRepository, VinculoMicrochipRepository microchipRepository,
+                         IntegracaoGovernoService integracaoService) {
         this.animalRepository = animalRepository;
         this.animalMapper = animalMapper;
         this.tutorRepository = tutorRepository;
         this.especieRepository = especieRepository;
         this.racaRepository = racaRepository;
+        this.microchipRepository = microchipRepository;
+        this.integracaoService = integracaoService;
     }
 
     public List<AnimalResponseDto> listarAnimal() {
@@ -111,6 +120,10 @@ public class AnimalService {
             if (animal.getRaca() == null || !animal.getRaca().getId().equals(animalDto.racaId())) {
                 Raca raca = racaRepository.findById(animalDto.racaId())
                         .orElseThrow(() -> new RecursoNaoEncontradoException("Raça com ID " + animalDto.racaId() + " não encontrada"));
+
+                if (!raca.getEspecie().getId().equals(animal.getEspecie().getId())) {
+                    throw new RegraDeNegocioException("A raça selecionada não é compatível com a espécie informada.");
+                }
                 animal.setRaca(raca);
             }
         } else {
@@ -124,7 +137,18 @@ public class AnimalService {
         animal.setCor(animalDto.cor());
         animal.setPesoAtual(animalDto.pesoAtual());
 
-        Animal animalUpdate = animalRepository.save(animal);
+        Animal animalUpdate = animalRepository.saveAndFlush(animal);
+
+        if (microchipRepository.findByAnimalIdAndDataFimIsNull(animalUpdate.getId()).isPresent()) {
+            IntegracaoGovernoRequestDto integracaoDto = new IntegracaoGovernoRequestDto(
+                    animalUpdate.getId(),
+                    null,
+                    TipoOperacaoIntegracao.ATUALIZACAO_ANIMAL,
+                    UUID.randomUUID().toString()
+            );
+            integracaoService.solicitarIntegracao(integracaoDto);
+        }
+
         return animalMapper.toDto(animalUpdate);
     }
 }
