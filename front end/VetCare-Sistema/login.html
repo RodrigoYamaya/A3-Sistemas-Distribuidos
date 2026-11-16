@@ -1,120 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | VetCare</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --green: #176b5b; --green2: #218675; --mint: #e8f4ef; --ink: #18332e;
-      --line: #e5ece9; --bg: #f5f8f6; --shadow: 0 12px 35px rgba(29,69,58,.07);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: 'DM Sans', sans-serif;
-      display: grid; place-items: center; min-height: 100vh;
-    }
-    .login-card {
-      background: #fff; border: 1px solid var(--line);
-      border-radius: 17px; padding: 40px; width: min(400px, calc(100% - 40px));
-      box-shadow: var(--shadow); text-align: center;
-    }
-    .brand-mark {
-      width: 55px; height: 55px; border-radius: 15px; background: var(--green);
-      color: white; display: inline-grid; place-items: center; font-size: 32px;
-      margin-bottom: 20px;
-    }
-    h1 { font: 800 24px Manrope; margin: 0 0 5px; }
-    p { color: #71827e; font-size: 13px; margin: 0 0 25px; }
-    
-    .field { display: flex; flex-direction: column; gap: 6px; text-align: left; margin-bottom: 15px; }
-    .field label { font-size: 11px; font-weight: 700; color: #60736d; }
-    .field input {
-      padding: 12px; border: 1px solid #dfe8e3; border-radius: 8px;
-      background: #fff; font: 14px 'DM Sans'; color: var(--ink); outline: none;
-    }
-    .field input:focus { border-color: #74ad9e; box-shadow: 0 0 0 3px #e8f4ef; }
-    
-    .btn {
-      width: 100%; border: 0; border-radius: 9px; padding: 14px;
-      font: 700 14px 'DM Sans'; cursor: pointer; background: var(--green);
-      color: white; margin-top: 10px; transition: 0.2s;
-    }
-    .btn:hover { background: #105849; transform: translateY(-1px); }
-    .btn:disabled { background: #a9c9be; cursor: not-allowed; }
-    
-    .error-msg {
-      color: #c95b5b; background: #fff0ef; padding: 10px; border-radius: 8px;
-      font-size: 12px; font-weight: 600; margin-bottom: 15px; display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | VetCare</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #176b5b; --green2: #218675; --mint: #e8f4ef; --ink: #18332e;
+            --line: #e5ece9; --bg: #f5f8f6; --shadow: 0 12px 35px rgba(29,69,58,.07);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; background: var(--bg); color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            display: grid; place-items: center; min-height: 100vh;
+        }
+        .login-card {
+            background: #fff; border: 1px solid var(--line);
+            border-radius: 17px; padding: 40px; width: min(410px, calc(100% - 40px));
+            box-shadow: var(--shadow); text-align: center;
+        }
+        .brand-mark {
+            width: 55px; height: 55px; border-radius: 15px; background: var(--green);
+            color: white; display: inline-grid; place-items: center; font-size: 32px;
+            margin-bottom: 20px;
+        }
+        h1 { font: 800 24px Manrope; margin: 0 0 5px; }
+        p { color: #71827e; font-size: 13px; margin: 0 0 25px; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; text-align: left; margin-bottom: 15px; }
+        .field label { font-size: 11px; font-weight: 700; color: #60736d; }
+        .field input {
+            padding: 12px; border: 1px solid #dfe8e3; border-radius: 8px;
+            background: #fff; font: 14px 'DM Sans'; color: var(--ink); outline: none;
+        }
+        .field input:focus { border-color: #74ad9e; box-shadow: 0 0 0 3px #e8f4ef; }
+
+        .btn {
+            width: 100%; border: 0; border-radius: 9px; padding: 14px;
+            font: 700 14px 'DM Sans'; cursor: pointer; background: var(--green);
+            color: white; margin-top: 10px; transition: 0.2s;
+        }
+        .btn:hover { background: #105849; transform: translateY(-1px); }
+        .btn:disabled { background: #a9c9be; cursor: not-allowed; }
+
+        .btn-link {
+            background: none; border: 0; color: var(--green); font: 600 13px 'DM Sans';
+            cursor: pointer; margin-top: 16px; text-decoration: underline;
+        }
+        .btn-link:hover { color: #105849; }
+
+        .msg-box {
+            padding: 11px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            margin-bottom: 15px; display: none; text-align: left; line-height: 1.4;
+        }
+        .msg-box.error { color: #c95b5b; background: #fff0ef; border: 1px solid #f7d4d2; }
+        .msg-box.success { color: #176b5b; background: #e8f4ef; border: 1px solid #c5e6d8; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-  <div class="login-card">
+<div class="login-card">
     <div class="brand-mark">✚</div>
-    <h1>Acesso VetCare</h1>
-    <p>Área restrita para veterinários autorizados.</p>
+    <h1 id="cardTitle">Acesso VetCare</h1>
+    <p id="cardSubtitle">Área restrita para veterinários autorizados.</p>
 
-    <div id="errorBox" class="error-msg"></div>
+    <div id="msgBox" class="msg-box"></div>
 
+    <!-- FORMULÁRIO DE LOGIN -->
     <form id="loginForm">
-      <div class="field">
-        <label>E-mail institucional</label>
-        <input type="email" id="email" required placeholder="dr.exemplo@vetcare.com">
-      </div>
-      <div class="field">
-        <label>Senha de acesso</label>
-        <input type="password" id="senha" required placeholder="••••••••">
-      </div>
-      <button type="submit" class="btn" id="loginBtn">Entrar no sistema</button>
+        <div class="field">
+            <label>E-mail institucional</label>
+            <input type="email" id="email" required placeholder="dr.exemplo@vetcare.com">
+        </div>
+        <div class="field">
+            <label>Senha de acesso</label>
+            <input type="password" id="senha" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn" id="loginBtn">Entrar no sistema</button>
+
+        <div>
+            <button type="button" class="btn-link" id="goToConfirmBtn">
+                Primeiro acesso? Confirmar senha do cadastro
+            </button>
+        </div>
     </form>
-  </div>
 
-  <script>
+    <!-- FORMULÁRIO DE CONFIRMAÇÃO DE SENHA -->
+    <form id="confirmForm" class="hidden">
+        <div class="field">
+            <label>E-mail cadastrado</label>
+            <input type="email" id="confirmEmail" required placeholder="dr.exemplo@vetcare.com">
+        </div>
+        <button type="submit" class="btn" id="confirmBtn">Confirmar cadastro</button>
+
+        <div>
+            <button type="button" class="btn-link" id="backToLoginBtn">
+                ← Voltar para o login
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
     const API_BASE = 'http://localhost:8081';
+    const msgBox = document.getElementById('msgBox');
+    const loginForm = document.getElementById('loginForm');
+    const confirmForm = document.getElementById('confirmForm');
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-      const btn = document.getElementById('loginBtn');
-      const errorBox = document.getElementById('errorBox');
-      
-      btn.disabled = true;
-      btn.textContent = 'Autenticando...';
-      errorBox.style.display = 'none';
+    function showMessage(text, type = 'error') {
+        msgBox.textContent = text;
+        msgBox.className = `msg-box ${type}`;
+        msgBox.style.display = 'block';
+    }
 
-      try {
-        const response = await fetch(`${API_BASE}/api/veterinarios/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, senha })
-        });
+    function clearMessage() {
+        msgBox.style.display = 'none';
+    }
 
-        if (!response.ok) {
-          throw new Error('E-mail ou senha incorretos, ou veterinário inativo.');
+    // Alternar para tela de confirmação de senha
+    document.getElementById('goToConfirmBtn').addEventListener('click', () => {
+        clearMessage();
+        const typedEmail = document.getElementById('email').value.trim();
+        if (typedEmail) {
+            document.getElementById('confirmEmail').value = typedEmail;
         }
-
-        const data = await response.json();
-        
-        localStorage.setItem('vetcare_user', JSON.stringify(data));
-
-        window.location.href = 'index.html';
-        
-      } catch (err) {
-        errorBox.textContent = err.message;
-        errorBox.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Entrar no sistema';
-      }
+        loginForm.classList.add('hidden');
+        confirmForm.classList.remove('hidden');
+        document.getElementById('cardTitle').textContent = 'Confirmar Cadastro';
+        document.getElementById('cardSubtitle').textContent = 'Valide seu e-mail para liberar o acesso ao sistema.';
     });
-  </script>
+
+    // Voltar para tela de login
+    document.getElementById('backToLoginBtn').addEventListener('click', () => {
+        clearMessage();
+        confirmForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        document.getElementById('cardTitle').textContent = 'Acesso VetCare';
+        document.getElementById('cardSubtitle').textContent = 'Área restrita para veterinários autorizados.';
+    });
+
+    // Submeter Login
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessage();
+
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const btn = document.getElementById('loginBtn');
+
+        btn.disabled = true;
+        btn.textContent = 'Autenticando...';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/veterinarios/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const raw = await response.text();
+            let data = null;
+            try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+
+            if (!response.ok) {
+                const msg = data?.userMessage || data?.detail || 'E-mail ou senha inválidos.';
+                throw new Error(msg);
+            }
+
+            localStorage.setItem('vetcare_user', JSON.stringify(data));
+            window.location.href = 'index.html';
+        } catch (err) {
+            showMessage(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Entrar no sistema';
+        }
+    });
+
+    // Submeter Confirmação de Senha
+    confirmForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessage();
+
+        const email = document.getElementById('confirmEmail').value.trim();
+        const btn = document.getElementById('confirmBtn');
+
+        btn.disabled = true;
+        btn.textContent = 'Confirmando...';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/veterinarios/confirmar-senha?email=${encodeURIComponent(email)}`, {
+                method: 'PATCH'
+            });
+
+            const raw = await response.text();
+            let data = null;
+            try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+
+            if (!response.ok) {
+                const msg = data?.userMessage || data?.detail || 'Não foi possível confirmar o cadastro.';
+                throw new Error(msg);
+            }
+
+            // Volta automaticamente para o login com o e-mail preenchido
+            document.getElementById('email').value = email;
+            confirmForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            document.getElementById('cardTitle').textContent = 'Acesso VetCare';
+            document.getElementById('cardSubtitle').textContent = 'Área restrita para veterinários autorizados.';
+            showMessage('Senha confirmada com sucesso! Digite sua senha para entrar.', 'success');
+        } catch (err) {
+            showMessage(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Confirmar cadastro';
+        }
+    });
+</script>
 </body>
 </html>
