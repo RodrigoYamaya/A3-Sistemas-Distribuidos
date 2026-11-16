@@ -22,12 +22,15 @@ public class VeterinarioService {
 
     private final VeterinarioRepository veterinarioRepository;
     private final VeterinarioMapper veterinarioMapper;
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public VeterinarioService(VeterinarioRepository veterinarioRepository, VeterinarioMapper veterinarioMapper) {
+    public VeterinarioService(
+            VeterinarioRepository veterinarioRepository,
+            VeterinarioMapper veterinarioMapper,
+            PasswordEncoder passwordEncoder) {
         this.veterinarioRepository = veterinarioRepository;
         this.veterinarioMapper = veterinarioMapper;
-//        this.passwordEncoder = passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<VeterinarioResponseDto> listarVeterinario() {
@@ -50,7 +53,7 @@ public class VeterinarioService {
         }
 
         Veterinario veterinario = veterinarioMapper.toEntity(veterinarioDto);
-        veterinario.setSenhaHash(veterinarioDto.senha());
+        veterinario.setSenhaHash(passwordEncoder.encode(veterinarioDto.senha()));
         Veterinario veterinarioSalvo = veterinarioRepository.save(veterinario);
         return veterinarioMapper.toDto(veterinarioSalvo);
     }
@@ -80,20 +83,19 @@ public class VeterinarioService {
         veterinario.setTelefone(veterinarioDto.telefone());
 
         if (veterinarioDto.senha() != null && !veterinarioDto.senha().isBlank()) {
-            veterinario.setSenhaHash(veterinarioDto.senha());
+            veterinario.setSenhaHash(passwordEncoder.encode(veterinarioDto.senha()));
         }
 
         Veterinario veterinarioUpdate = veterinarioRepository.save(veterinario);
         return veterinarioMapper.toDto(veterinarioUpdate);
     }
 
-
     @Transactional
     public LoginResponseDto realizarLogin(LoginRequestDto request) {
         Veterinario vet = veterinarioRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RegraDeNegocioException("E-mail ou senha inválidos."));
 
-        if (!request.senha().equals(vet.getSenhaHash())) {
+        if (!passwordEncoder.matches(request.senha(), vet.getSenhaHash())) {
             throw new RegraDeNegocioException("E-mail ou senha inválidos.");
         }
 

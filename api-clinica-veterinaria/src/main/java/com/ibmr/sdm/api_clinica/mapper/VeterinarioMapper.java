@@ -14,7 +14,7 @@ public interface VeterinarioMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "situacao", constant = "ATIVO")
-    @Mapping(source = "senha", target = "senhaHash")
+    @Mapping(target = "senhaHash", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "ultimoAcesso", ignore = true)
     Veterinario toEntity(VeterinarioRequestDto dto);
