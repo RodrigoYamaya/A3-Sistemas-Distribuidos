@@ -57,4 +57,17 @@ public class VeterinarioController {
         return ResponseEntity.ok(login);
     }
 
+
+    @PatchMapping("/{id}/confirmar-senha")
+    public ResponseEntity<String> confirmarSenhaPorId(@PathVariable Long id) {
+        veterinarioService.confirmarSenhaPorId(id);
+        return ResponseEntity.ok("Senha confirmada com sucesso!");
+    }
+
+    @PatchMapping("/confirmar-senha/{email}")
+    public ResponseEntity<String> confirmarSenhaPorEmail(@PathVariable String email) {
+        veterinarioService.confirmarSenhaPorEmail(email);
+        return ResponseEntity.ok("Senha confirmada com sucesso!");
+    }
+
 }

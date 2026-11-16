@@ -1,6 +1,7 @@
 package com.ibmr.sdm.api_clinica.Exceptions.ExceptionHandler;
 
 import com.ibmr.sdm.api_clinica.Exceptions.RecursoNaoEncontradoException;
+import com.ibmr.sdm.api_clinica.Exceptions.RegraDeNegocioException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public static final String MSG_ERRO_GENERICA_USUARIO_FINAL =
             "Ocorreu um erro interno inesperado. Tente novamente ou contate o administrador.";
 
-    // 1.  VAI CAPTURA ERROS DE VALIDAÇÃO DE CAMPOS (DTO - @NotBlank, @NotNull)
+    // 1. CAPTURA ERROS DE VALIDAÇÃO DE CAMPOS (DTO - @NotBlank, @NotNull)
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -52,7 +53,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, headers, status, request);
     }
 
-    // 2. VAI  CAPTURA A NOSSA EXCEÇÃO CUSTOMIZADA (Animal/Veterinário não encontrado)
+    // 2. CAPTURA RECURSO NÃO ENCONTRADO (Animal/Veterinário não encontrado)
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<Object> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex, WebRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
@@ -66,7 +67,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
     }
 
-    // 3. VAI CAPTURA ERROS DE BANCO DE DADOS (Ex: CPF ou CRMV já existentes)
+    // 3. CAPTURA ERROS DE BANCO DE DADOS (Ex: CPF, CRMV ou E-mail já existentes)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrity(DataIntegrityViolationException ex, WebRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
@@ -90,20 +91,21 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
     }
 
-    // 4. VAI CAPTURA QUALQUER OUTRA EXCEÇÃO NÃO TRATADA
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleUncaught(Exception ex, WebRequest request) {
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        ProblemType problemType = ProblemType.ERRO_DE_SISTEMA;
+    // 4. CAPTURA ERROS DE REGRA DE NEGÓCIO (Login inválido, conta não confirmada, veterinário inativo, etc.)
+    @ExceptionHandler(RegraDeNegocioException.class)
+    public ResponseEntity<Object> handleRegraDeNegocio(RegraDeNegocioException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemType problemType = ProblemType.DADOS_INVALIDOS;
+        String detail = ex.getMessage();
 
-        Problem problem = createProblemBuilder(status, problemType, MSG_ERRO_GENERICA_USUARIO_FINAL)
-                .userMessage(MSG_ERRO_GENERICA_USUARIO_FINAL)
+        Problem problem = createProblemBuilder(status, problemType, detail)
+                .userMessage(detail)
                 .build();
 
         return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
     }
 
-    // CAPTURA ERROS DE REGRA DE NEGÓCIO (Como a falta da vacina ou Idempotência repetida)
+    // 5. CAPTURA ERROS DE ARGUMENTO INVÁLIDO
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
@@ -117,6 +119,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
     }
 
+    // 6. CAPTURA QUALQUER OUTRA EXCEÇÃO NÃO TRATADA
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleUncaught(Exception ex, WebRequest request) {
+        ex.printStackTrace();
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ProblemType problemType = ProblemType.ERRO_DE_SISTEMA;
+
+        Problem problem = createProblemBuilder(status, problemType, MSG_ERRO_GENERICA_USUARIO_FINAL)
+                .userMessage(MSG_ERRO_GENERICA_USUARIO_FINAL)
+                .build();
+
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), status, request);
+    }
 
     private Problem.ProblemBuilder createProblemBuilder(HttpStatusCode status, ProblemType problemType, String detail) {
         return Problem.builder()

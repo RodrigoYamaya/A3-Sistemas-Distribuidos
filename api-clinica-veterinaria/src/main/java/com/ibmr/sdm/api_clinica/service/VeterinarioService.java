@@ -112,4 +112,33 @@ public class VeterinarioService {
 
         return veterinarioMapper.toLoginResponseDto(vet);
     }
+    
+
+    @Transactional
+    public void confirmarSenhaPorId(Long id) {
+        Veterinario vet = veterinarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + id + " não encontrado."));
+
+        validarEConfirmar(vet);
+    }
+
+    @Transactional
+    public void confirmarSenhaPorEmail(String email) {
+        Veterinario vet = veterinarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com o e-mail " + email + " não encontrado."));
+
+        validarEConfirmar(vet);
+    }
+
+    private void validarEConfirmar(Veterinario vet) {
+        if (Boolean.TRUE.equals(vet.getSenhaConfirmada())) {
+            throw new RegraDeNegocioException("A senha deste cadastro já foi confirmada anteriormente.");
+        }
+
+        vet.setSenhaConfirmada(true);
+        vet.setDataConfirmacaoSenha(LocalDateTime.now());
+        veterinarioRepository.save(vet);
+    }
+
+
 }
