@@ -47,4 +47,15 @@ public class VacinaController {
         vacinaService.excluir(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/proximas-doses")
+    public ResponseEntity<List<VacinaResponseDto>> listarProximasDoses() {
+        return ResponseEntity.ok(vacinaService.listarProximasDoses());
+    }
+
+    @GetMapping("/animal/{animalId}/proximas-doses")
+    public ResponseEntity<List<VacinaResponseDto>> listarProximasDosesPorAnimal(@PathVariable Long animalId) {
+        return ResponseEntity.ok(vacinaService.listarProximasDosesPorAnimal(animalId));
+    }
 }

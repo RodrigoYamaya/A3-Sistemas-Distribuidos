@@ -15,6 +15,7 @@ import com.ibmr.sdm.api_clinica.repository.VeterinarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -115,5 +116,20 @@ public class VacinaService {
     private Veterinario buscarVeterinario(Long veterinarioId) {
         return veterinarioRepository.findById(veterinarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + veterinarioId + " não encontrado"));
+    }
+
+
+    public List<VacinaResponseDto> listarProximasDoses() {
+        return vacinaRepository.findByDataProximaDoseAfter(LocalDate.now().minusDays(1))
+                .stream()
+                .map(vacinaMapper::toDto)
+                .toList();
+    }
+
+    public List<VacinaResponseDto> listarProximasDosesPorAnimal(Long animalId) {
+        return vacinaRepository.findByAnimalIdAndDataProximaDoseAfter(animalId, LocalDate.now().minusDays(1))
+                .stream()
+                .map(vacinaMapper::toDto)
+                .toList();
     }
 }
