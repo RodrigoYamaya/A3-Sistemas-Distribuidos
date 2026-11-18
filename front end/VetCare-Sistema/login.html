@@ -61,6 +61,11 @@
         .msg-box.success { color: #176b5b; background: #e8f4ef; border: 1px solid #c5e6d8; }
         .hidden { display: none; }
     </style>
+    <script>
+        if (localStorage.getItem('vetcare_user')) {
+            window.location.replace('index.html');
+        }
+    </script>
 </head>
 <body>
 
@@ -168,12 +173,12 @@
             try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
 
             if (!response.ok) {
-                const msg = data?.userMessage || data?.detail || 'E-mail ou senha inválidos.';
+                const msg = data?.userMessage || data?.detail || data?.message || raw || 'E-mail ou senha inválidos.';
                 throw new Error(msg);
             }
 
-            localStorage.setItem('vetcare_user', JSON.stringify(data));
-            window.location.href = 'index.html';
+            localStorage.setItem('vetcare_user', JSON.stringify(data || { email }));
+            window.location.replace('index.html');
         } catch (err) {
             showMessage(err.message, 'error');
         } finally {
@@ -182,7 +187,7 @@
         }
     });
 
-    // Submeter Confirmação de Senha
+    // Submeter Confirmação de Senha (PathVariable /{email})
     confirmForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearMessage();
@@ -194,7 +199,7 @@
         btn.textContent = 'Confirmando...';
 
         try {
-            const response = await fetch(`${API_BASE}/api/veterinarios/confirmar-senha?email=${encodeURIComponent(email)}`, {
+            const response = await fetch(`${API_BASE}/api/veterinarios/confirmar-senha/${encodeURIComponent(email)}`, {
                 method: 'PATCH'
             });
 
@@ -203,17 +208,16 @@
             try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
 
             if (!response.ok) {
-                const msg = data?.userMessage || data?.detail || 'Não foi possível confirmar o cadastro.';
+                const msg = data?.userMessage || data?.detail || data?.message || raw || 'Não foi possível confirmar o cadastro.';
                 throw new Error(msg);
             }
 
-            // Volta automaticamente para o login com o e-mail preenchido
             document.getElementById('email').value = email;
             confirmForm.classList.add('hidden');
             loginForm.classList.remove('hidden');
             document.getElementById('cardTitle').textContent = 'Acesso VetCare';
             document.getElementById('cardSubtitle').textContent = 'Área restrita para veterinários autorizados.';
-            showMessage('Senha confirmada com sucesso! Digite sua senha para entrar.', 'success');
+            showMessage(typeof data === 'string' ? data : (raw || 'Senha confirmada com sucesso! Digite sua senha para entrar.'), 'success');
         } catch (err) {
             showMessage(err.message, 'error');
         } finally {
