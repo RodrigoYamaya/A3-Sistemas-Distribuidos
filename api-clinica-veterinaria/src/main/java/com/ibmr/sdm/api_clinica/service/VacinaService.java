@@ -48,10 +48,10 @@ public class VacinaService {
         vacina.setAnimal(animal);
         vacina.setVeterinario(veterinario);
 
-        // Salva localmente primeiro (RNF-03: registro local nunca é desfeito por falha externa)
+        // AQUI VAI Salvar localmente primeiro (registro local nunca é desfeito por falha externa)
         Vacina vacinaSalva = vacinaRepository.save(vacina);
 
-        // Dispara integração APENAS se for antirrábica E efetivamente APLICADA
+        // Aqui foi regra que estava cusando erro logica que nao seguir as conformidades do requisitos definido pelo professor; Dispara integração APENAS se for antirrábica E efetivamente "APLICADA" era o que estava acontecendo que todas as situação "agendada, "aplciada"
         if (deveComunicarGoverno(vacinaSalva)) {
             dispararComunicacaoAntirrabica(vacinaSalva);
         }
@@ -94,7 +94,7 @@ public class VacinaService {
 
         vacinaAtualizada = vacinaRepository.save(vacinaAtualizada);
 
-        // Se estava AGENDADA e foi atualizada para APLICADA (sendo antirrábica), dispara o envio agora
+        // Se estava AGENDADA e foi atualizada para APLICADA (sendo antirrábica), dispara o envio agora. Seguindo as confirmadades definidas pelo professor
         if (!eraAplicadaAntes && deveComunicarGoverno(vacinaAtualizada)) {
             dispararComunicacaoAntirrabica(vacinaAtualizada);
         }

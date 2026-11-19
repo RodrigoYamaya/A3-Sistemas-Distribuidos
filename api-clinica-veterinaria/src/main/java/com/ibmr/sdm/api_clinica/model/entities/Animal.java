@@ -45,7 +45,7 @@ public class Animal {
     private Especie especie;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = true)
     private Raca raca;
 
     @Enumerated(EnumType.STRING)
