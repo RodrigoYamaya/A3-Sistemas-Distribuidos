@@ -8,6 +8,7 @@ import com.ibmr.sdm.api_clinica.model.dto.VacinaResponseDto;
 import com.ibmr.sdm.api_clinica.model.entities.Animal;
 import com.ibmr.sdm.api_clinica.model.entities.Vacina;
 import com.ibmr.sdm.api_clinica.model.entities.Veterinario;
+import com.ibmr.sdm.api_clinica.model.enums.SituacaoVacina;
 import com.ibmr.sdm.api_clinica.model.enums.TipoOperacaoIntegracao;
 import com.ibmr.sdm.api_clinica.repository.AnimalRepository;
 import com.ibmr.sdm.api_clinica.repository.VacinaRepository;
@@ -47,19 +48,12 @@ public class VacinaService {
         vacina.setAnimal(animal);
         vacina.setVeterinario(veterinario);
 
-        // A vacina é salva localmente primeiro (cumprindo a premissa obrigatória) que uma das regras do escopo
+        // Salva localmente primeiro (RNF-03: registro local nunca é desfeito por falha externa)
         Vacina vacinaSalva = vacinaRepository.save(vacina);
 
-        // Dispara a integração apenas se for antirrábica que regra foi definida pelo escopo do trabalho
-        if (vacinaSalva.getAntirrabica() != null && vacinaSalva.getAntirrabica()) {
-            IntegracaoGovernoRequestDto integracaoDto = new IntegracaoGovernoRequestDto(
-                    dto.animalId(),
-                    vacinaSalva.getId(),
-                    TipoOperacaoIntegracao.VACINA_ANTIRRABICA,
-                    UUID.randomUUID().toString()
-            );
-
-            integracaoService.solicitarIntegracao(integracaoDto);
+        // Dispara integração APENAS se for antirrábica E efetivamente APLICADA
+        if (deveComunicarGoverno(vacinaSalva)) {
+            dispararComunicacaoAntirrabica(vacinaSalva);
         }
 
         return vacinaMapper.toDto(vacinaSalva);
@@ -88,6 +82,8 @@ public class VacinaService {
         Vacina vacinaExistente = vacinaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Vacina com ID " + id + " não encontrada"));
 
+        boolean eraAplicadaAntes = deveComunicarGoverno(vacinaExistente);
+
         Animal animal = buscarAnimal(dto.animalId());
         Veterinario veterinario = buscarVeterinario(dto.veterinarioId());
 
@@ -97,15 +93,36 @@ public class VacinaService {
         vacinaAtualizada.setVeterinario(veterinario);
 
         vacinaAtualizada = vacinaRepository.save(vacinaAtualizada);
+
+        // Se estava AGENDADA e foi atualizada para APLICADA (sendo antirrábica), dispara o envio agora
+        if (!eraAplicadaAntes && deveComunicarGoverno(vacinaAtualizada)) {
+            dispararComunicacaoAntirrabica(vacinaAtualizada);
+        }
+
         return vacinaMapper.toDto(vacinaAtualizada);
     }
 
     @Transactional
     public void excluir(Long id) {
-        if (!vacinaRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Vacina com ID " + id + " não encontrada");
-        }
-        vacinaRepository.deleteById(id);
+        Vacina vacina = vacinaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Vacina com ID " + id + " não encontrada"));
+        vacina.setSituacao(SituacaoVacina.CANCELADA);
+        vacinaRepository.save(vacina);
+    }
+
+    private boolean deveComunicarGoverno(Vacina vacina) {
+        return Boolean.TRUE.equals(vacina.getAntirrabica())
+                && vacina.getSituacao() == SituacaoVacina.APLICADA;
+    }
+
+    private void dispararComunicacaoAntirrabica(Vacina vacina) {
+        IntegracaoGovernoRequestDto integracaoDto = new IntegracaoGovernoRequestDto(
+                vacina.getAnimal().getId(),
+                vacina.getId(),
+                TipoOperacaoIntegracao.VACINA_ANTIRRABICA,
+                UUID.randomUUID().toString()
+        );
+        integracaoService.solicitarIntegracao(integracaoDto);
     }
 
     private Animal buscarAnimal(Long animalId) {
@@ -117,7 +134,6 @@ public class VacinaService {
         return veterinarioRepository.findById(veterinarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + veterinarioId + " não encontrado"));
     }
-
 
     public List<VacinaResponseDto> listarProximasDoses() {
         return vacinaRepository.findByDataProximaDoseAfter(LocalDate.now().minusDays(1))
