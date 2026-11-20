@@ -44,8 +44,8 @@ public class VinculoMicrochipService {
     @Transactional
     public VinculoMicrochipResponseDto vincularMicrochip(Long animalId, VinculoMicrochipRequestDto dto) {
 
-        if (microchipRepository.existsByCodigoMicrochipAndDataFimIsNull(dto.codigoMicrochip())) {
-            throw new RegraDeNegocioException("Este código de microchip RFID já está vinculado a um animal ativo no sistema.");
+        if (microchipRepository.existsByCodigoMicrochip(dto.codigoMicrochip())) {
+            throw new RegraDeNegocioException("Este código de microchip RFID já foi utilizado no sistema e não pode ser reutilizado!!");
         }
 
         Animal animal = animalRepository.findById(animalId)
