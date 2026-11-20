@@ -60,10 +60,10 @@ public class TutorService {
 
     @Transactional
     public void deletarTutor(long id) {
-        if (!tutorRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Tutor com ID " + id + " não encontrado");
-        }
-        tutorRepository.deleteById(id);
+        Tutor tutor = tutorRepository.findById(id)
+                .orElseThrow(() -> new  RecursoNaoEncontradoException("Tutor com ID " + id + " não encontrado"));
+        tutor.setSituacao(Situacao.INATIVO);
+        tutorRepository.save(tutor);
     }
 
     @Transactional
