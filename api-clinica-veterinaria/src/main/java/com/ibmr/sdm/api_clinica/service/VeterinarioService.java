@@ -60,10 +60,10 @@ public class VeterinarioService {
     }
     @Transactional
     public void deletarVeterinario(long id) {
-        Veterinario veterinario = veterinarioRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + id + " não encontrado"));
-        veterinario.setSituacao(Situacao.INATIVO);
-        veterinarioRepository.save(veterinario);
+        if (!veterinarioRepository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Veterinario com ID " + id + " não encontrado");
+        }
+        veterinarioRepository.deleteById(id);
     }
 
     @Transactional
