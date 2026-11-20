@@ -2,6 +2,7 @@ package com.ibmr.sdm.api_clinica.model.dto;
 
 import com.ibmr.sdm.api_clinica.model.enums.Situacao;
 import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDate;
 
@@ -12,6 +13,7 @@ public record TutorRequestDto(
 
         @NotBlank(message = "O CPF é obrigatório")
         @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos")
+        @CPF(message = "Informe um CPF válido")
         String cpf,
 
         @NotNull(message = "A data de nascimento é obrigatória")

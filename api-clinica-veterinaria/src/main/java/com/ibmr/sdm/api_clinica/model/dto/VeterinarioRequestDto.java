@@ -1,15 +1,19 @@
 package com.ibmr.sdm.api_clinica.model.dto;
 
+import com.ibmr.sdm.api_clinica.model.enums.Situacao;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.br.CPF;
 
 public record VeterinarioRequestDto(
         @NotBlank(message = "O nome completo é obrigatório")
         String nomeCompleto,
 
         @NotBlank(message = "O CPF é obrigatório")
-        @Size(min = 11, max = 11, message = "O CPF deve ter exatos 11 caracteres")
+        @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos")
+        @CPF(message = "Informe um CPF válido")
         String cpf,
 
         @NotBlank(message = "O número do CRMV é obrigatório")
@@ -27,6 +31,8 @@ public record VeterinarioRequestDto(
 
         @NotBlank(message = "A senha é obrigatória")
         @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
-        String senha
+        String senha,
+
+        Situacao situacao
 ) {
 }

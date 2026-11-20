@@ -8,6 +8,7 @@ import com.ibmr.sdm.api_clinica.model.dto.LoginResponseDto;
 import com.ibmr.sdm.api_clinica.model.dto.VeterinarioRequestDto;
 import com.ibmr.sdm.api_clinica.model.dto.VeterinarioResponseDto;
 import com.ibmr.sdm.api_clinica.model.entities.Veterinario;
+import com.ibmr.sdm.api_clinica.model.enums.Situacao;
 import com.ibmr.sdm.api_clinica.repository.VeterinarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,13 +58,12 @@ public class VeterinarioService {
         Veterinario veterinarioSalvo = veterinarioRepository.save(veterinario);
         return veterinarioMapper.toDto(veterinarioSalvo);
     }
-
     @Transactional
     public void deletarVeterinario(long id) {
-        if (!veterinarioRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Veterinário com ID " + id + " não encontrado");
-        }
-        veterinarioRepository.deleteById(id);
+        Veterinario veterinario = veterinarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Veterinário com ID " + id + " não encontrado"));
+        veterinario.setSituacao(Situacao.INATIVO);
+        veterinarioRepository.save(veterinario);
     }
 
     @Transactional
@@ -81,6 +81,10 @@ public class VeterinarioService {
         veterinario.setCrmvUf(veterinarioDto.crmvUf());
         veterinario.setEmail(veterinarioDto.email());
         veterinario.setTelefone(veterinarioDto.telefone());
+
+        if (veterinarioDto.situacao() != null) {
+            veterinario.setSituacao(veterinarioDto.situacao());
+        }
 
         if (veterinarioDto.senha() != null && !veterinarioDto.senha().isBlank()) {
             veterinario.setSenhaHash(passwordEncoder.encode(veterinarioDto.senha()));
