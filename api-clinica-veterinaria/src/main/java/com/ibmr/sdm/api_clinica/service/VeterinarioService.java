@@ -49,6 +49,10 @@ public class VeterinarioService {
 
     @Transactional
     public VeterinarioResponseDto cadastrar(VeterinarioRequestDto veterinarioDto) {
+        if (veterinarioDto.senha() == null || veterinarioDto.senha().isBlank()) {
+            throw new RegraDeNegocioException("A senha é obrigatória para cadastrar o veterinário.");
+        }
+
         if (veterinarioRepository.existsByCpf(veterinarioDto.cpf())) {
             throw new IllegalArgumentException("Já existe um veterinário cadastrado com o CPF: " + veterinarioDto.cpf());
         }

@@ -1,4 +1,4 @@
-/* VetCare - interface integrada à API Java/Spring Boot enviada no projeto. */
+/* NexoVet - interface integrada à API Java/Spring Boot. */
 const API_BASE = 'http://localhost:8081';
 const ENDPOINTS = {
     animais: '/api/animais',
@@ -121,13 +121,52 @@ function statCard(label, value, icon, note = 'Registros cadastrados') {
 
 function renderHome() {
     const a = state.data.animais || [], t = state.data.tutores || [], v = state.data.veterinarios || [], c = state.data.consultas || [], vacs = state.data.vacinas || [], ints = state.data.integracoes || [];
-    return `<div class="welcome"><div><h2>Olá! Bem-vindo ao VetCare.</h2><p>Acompanhe os principais indicadores da sua clínica veterinária.</p></div><button class="btn btn-primary" onclick="navigate('animais')">＋ Cadastrar animal</button></div><div class="stats-grid">${statCard('Animais', a.length, '🐾')}${statCard('Tutores', t.length, '♙')}${statCard('Veterinários', v.length, '⚕')}${statCard('Consultas', c.length, '▣')}</div><div class="dashboard-grid"><section class="panel"><h3>Resumo da operação</h3><div class="quick-list"><div class="quick-row"><span class="muted">Vacinas registradas</span><strong>${vacs.length}</strong></div><div class="quick-row"><span class="muted">Integrações solicitadas</span><strong>${ints.length}</strong></div><div class="quick-row"><span class="muted">Animais ativos</span><strong>${a.filter(x => x.situacao === 'ATIVO').length}</strong></div><div class="quick-row"><span class="muted">Consultas cadastradas</span><strong>${c.length}</strong></div></div></section><section class="panel"><h3>Acesso rápido</h3><div class="quick-list"><div class="quick-row"><strong>Cadastro de tutores</strong><button class="table-action" onclick="openCreate('tutores')">＋ Novo</button></div><div class="quick-row"><strong>Cadastro de veterinários</strong><button class="table-action" onclick="openCreate('veterinarios')">＋ Novo</button></div><div class="quick-row"><strong>Registrar vacina</strong><button class="table-action" onclick="openCreate('vacinas')">＋ Novo</button></div><div class="quick-row"><strong>Consultar microchip</strong><button class="table-action" onclick="navigate('animais')">Abrir animais</button></div></div></section></div>`;
+    const proximasDoses = vacs
+        .filter(x => x.dataProximaDose && x.situacao !== 'CANCELADA')
+        .sort((x, y) => String(x.dataProximaDose).localeCompare(String(y.dataProximaDose)))
+        .slice(0, 4);
+    const pendentesGov = ints.filter(x => ['FALHA', 'PENDENTE', 'ENVIADO'].includes(x.situacao)).length;
+
+    return `
+        <div class="welcome">
+            <div>
+                <h2>Olá! Bem-vindo à NexoVet.</h2>
+                <p>Acompanhe os indicadores clínicos, reforços vacinais e sincronizações governamentais.</p>
+            </div>
+            <button class="btn btn-primary" onclick="navigate('animais')">＋ Cadastrar animal</button>
+        </div>
+        <div class="stats-grid">
+            ${statCard('Animais', a.length, '🐾')}
+            ${statCard('Tutores', t.length, '♙')}
+            ${statCard('Veterinários', v.length, '⚕')}
+            ${statCard('Consultas', c.length, '▣')}
+        </div>
+        <div class="dashboard-grid">
+            <section class="panel">
+                <h3>Resumo da operação</h3>
+                <div class="quick-list">
+                    <div class="quick-row"><span class="muted">Vacinas registradas</span><strong>${vacs.length}</strong></div>
+                    <div class="quick-row"><span class="muted">Integrações confirmadas</span><strong>${ints.filter(x => x.situacao === 'CONFIRMADA').length}</strong></div>
+                    <div class="quick-row"><span class="muted">Integrações pendentes / falha</span><strong>${pendentesGov}</strong></div>
+                    <div class="quick-row"><span class="muted">Consultas agendadas</span><strong>${c.filter(x => x.situacao === 'AGENDADA').length}</strong></div>
+                </div>
+            </section>
+            <section class="panel">
+                <h3>Próximas doses previstas</h3>
+                <div class="quick-list">
+                    ${proximasDoses.length
+        ? proximasDoses.map(vac => `<div class="quick-row"><div><strong>${esc(displayName('animais', vac.animalId))}</strong><div class="muted">${esc(vac.nomeVacina)}</div></div><span class="badge warn">${fmtDate(vac.dataProximaDose)}</span></div>`).join('')
+        : '<div class="muted" style="padding:8px 0;">Nenhuma próxima dose programada.</div>'}
+                </div>
+            </section>
+        </div>`;
 }
 
 const configs = {
     animais: { title: 'Animais', singular: 'animal', fields: [['nome', 'Nome do animal', 'text', true], ['dataNascimento', 'Data de nascimento', 'date'], ['idadeEstimadaMeses', 'Idade estimada (meses)', 'number'], ['sexo', 'Sexo', 'select', true, ['MACHO', 'FEMEA', 'INDEFINIDO']], ['cor', 'Cor', 'text'], ['pesoAtual', 'Peso atual (kg)', 'number'], ['tutorId', 'Tutor responsável', 'select', true, 'tutores'], ['especieId', 'Espécie', 'select', true, 'especies'], ['racaId', 'Raça (opcional)', 'select', false, 'racas']] },
     tutores: { title: 'Tutores', singular: 'tutor', fields: [['nomeCompleto', 'Nome completo', 'text', true], ['cpf', 'CPF (somente números)', 'text', true], ['dataNascimento', 'Data de nascimento', 'date', true], ['email', 'E-mail', 'email', true], ['telefone', 'Telefone', 'tel', true], ['cep', 'CEP', 'cep', true], ['logradouro', 'Logradouro', 'text'], ['numero', 'Número', 'text', true], ['complemento', 'Complemento', 'text'], ['bairro', 'Bairro', 'text'], ['cidade', 'Cidade', 'text'], ['uf', 'UF', 'text']] },
-    veterinarios: { title: 'Veterinários', singular: 'veterinário', fields: [['nomeCompleto', 'Nome completo', 'text', true], ['cpf', 'CPF (somente números)', 'text', true], ['crmvNumero', 'Número CRMV', 'text', true], ['crmvUf', 'UF CRMV', 'text', true], ['email', 'E-mail', 'email', true], ['telefone', 'Telefone', 'tel'], ['senha', 'Senha inicial', 'password', true]] },
+    //veterinarios: { title: 'Veterinários', singular: 'veterinário', fields: [['nomeCompleto', 'Nome completo', 'text', true], ['cpf', 'CPF (somente números)', 'text', true], ['crmvNumero', 'Número CRMV', 'text', true], ['crmvUf', 'UF CRMV', 'text', true], ['email', 'E-mail', 'email', true], ['telefone', 'Telefone', 'tel'], ['senha', 'Senha inicial', 'password', true]] },
+    veterinarios: { title: 'Veterinários', singular: 'veterinário', fields: [['nomeCompleto', 'Nome completo', 'text', true], ['cpf', 'CPF (somente números)', 'text', true], ['crmvNumero', 'Número CRMV', 'text', true], ['crmvUf', 'UF CRMV', 'text', true], ['email', 'E-mail', 'email', true], ['telefone', 'Telefone', 'tel'], ['senha', 'Senha (deixe vazio para manter)', 'password', false], ['situacao', 'Situação', 'select', false, ['ATIVO', 'INATIVO']]] },
     consultas: { title: 'Consultas', singular: 'consulta', fields: [['animalId', 'Animal', 'select', true, 'animais'], ['veterinarioId', 'Veterinário', 'select', true, 'veterinarios'], ['dataHora', 'Data e hora', 'datetime-local', true], ['motivo', 'Motivo', 'text', true], ['anamnese', 'Anamnese', 'textarea'], ['sintomas', 'Sintomas', 'textarea'], ['diagnostico', 'Diagnóstico', 'textarea'], ['tratamento', 'Tratamento', 'textarea'], ['prescricao', 'Prescrição', 'textarea'], ['pesoKg', 'Peso (kg)', 'number'], ['temperaturaC', 'Temperatura (°C)', 'number'], ['observacoes', 'Observações', 'textarea'], ['situacao', 'Situação', 'select', false, ['AGENDADA', 'REALIZADA', 'CANCELADA']]] },
     vacinas: { title: 'Vacinas', singular: 'vacina', fields: [['animalId', 'Animal', 'select', true, 'animais'], ['veterinarioId', 'Veterinário', 'select', true, 'veterinarios'], ['nomeVacina', 'Nome da vacina', 'text', true], ['tipoVacina', 'Tipo da vacina', 'text', true], ['antirrabica', 'É antirrábica?', 'select', true, ['true', 'false']], ['fabricante', 'Fabricante', 'text', true], ['numeroLote', 'Número do lote', 'text', true], ['dataAplicacao', 'Data de aplicação', 'date'], ['dose', 'Dose', 'text'], ['viaAplicacao', 'Via de aplicação', 'text'], ['dataProximaDose', 'Próxima dose', 'date'], ['validadeLote', 'Validade do lote', 'date', true], ['observacoes', 'Observações', 'textarea'], ['situacao', 'Situação', 'select', false, ['AGENDADA', 'APLICADA', 'CANCELADA']]] },
     especies: { title: 'Espécies', singular: 'espécie', fields: [['nome', 'Nome', 'text', true], ['descricao', 'Descrição', 'text'], ['situacao', 'Situação', 'select', false, ['ATIVO', 'INATIVO']]] },
@@ -138,7 +177,7 @@ function badge(value) {
     const v = String(value || '—');
     let cl = '';
     if (['INATIVO', 'CANCELADA', 'ERRO', 'FALHA'].includes(v)) cl = 'danger';
-    else if (['PENDENTE', 'AGENDADA', 'PROCESSANDO'].includes(v)) cl = 'warn';
+    else if (['PENDENTE', 'AGENDADA', 'PROCESSANDO', 'ENVIADO'].includes(v)) cl = 'warn';
     return `<span class="badge ${cl}">${esc(titleCase(v))}</span>`;
 }
 
@@ -154,7 +193,7 @@ function tablePage(page) {
     const search = page === 'animais'
         ? '<input class="search-box" id="tableSearch" placeholder="Buscar animal por nome...">'
         : '<input class="search-box" id="tableSearch" placeholder="Buscar registro...">';
-    return `<div class="page-toolbar"><h2>${cfg.title}</h2><div style="display:flex;gap:9px;flex-wrap:wrap">${search}<button class="btn btn-primary" onclick="openCreate('${page}')">＋ Novo ${cfg.singular}</button></div></div><div class="table-card"><div class="table-wrap"><table><thead><tr>${headersFor(page).map(h => `<th>${h}</th>`).join('')}<th>Ações</th></tr></thead><tbody id="tableBody">${rows.map(r => rowHtml(page, r)).join('') || `<tr><td colspan="8"><div class="empty">Nenhum registro encontrado. Clique em “Novo ${cfg.singular}” para começar.</div></td></tr>`}</tbody></table></div></div>`;
+    return `<div class="page-toolbar"><h2>${cfg.title}</h2><div style="display:flex;gap:9px;flex-wrap:wrap">${search}<button class="btn btn-primary" onclick="openCreate('${page}')">＋ Novo ${cfg.singular}</button></div></div><div class="table-card"><div class="table-wrap"><table><thead><tr>${headersFor(page).map(h => `<th>${h}</th>`).join('')}<th>Ações</th></tr></thead><tbody id="tableBody">${rows.map(r => rowHtml(page, r)).join('') || `<tr><td colspan="9"><div class="empty">Nenhum registro encontrado. Clique em “Novo ${cfg.singular}” para começar.</div></td></tr>`}</tbody></table></div></div>`;
 }
 
 function headersFor(p) {
@@ -163,7 +202,7 @@ function headersFor(p) {
         tutores: ['Tutor', 'CPF', 'E-mail', 'Telefone', 'Cidade', 'Situação'],
         veterinarios: ['Veterinário', 'CRMV', 'E-mail', 'Telefone', 'Situação', 'Cadastro'],
         consultas: ['Animal', 'Veterinário', 'Data e hora', 'Motivo', 'Situação'],
-        vacinas: ['Vacina', 'Animal', 'Veterinário', 'Aplicação', 'Antirrábica', 'Situação'],
+        vacinas: ['Vacina', 'Animal', 'Aplicação', 'Próxima dose', 'Antirrábica', 'Situação'],
         especies: ['Espécie', 'Descrição', 'Situação'],
         racas: ['Raça', 'Espécie', 'Descrição', 'Situação']
     })[p];
@@ -175,12 +214,12 @@ function rowHtml(p, r) {
     if (p === 'tutores') cells = [`<strong>${esc(r.nomeCompleto)}</strong>`, esc(r.cpf), esc(r.email), esc(r.telefone), esc(r.endereco?.cidade || '—'), badge(r.situacao)];
     if (p === 'veterinarios') cells = [`<strong>${esc(r.nomeCompleto)}</strong>`, `CRMV ${esc(r.crmvNumero)}/${esc(r.crmvUf)}`, esc(r.email), esc(r.telefone), badge(r.situacao), fmtDate(r.dataCadastro)];
     if (p === 'consultas') cells = [esc(displayName('animais', r.animalId)), esc(displayName('veterinarios', r.veterinarioId)), esc(String(r.dataHora || '').replace('T', ' ').slice(0, 16)), esc(r.motivo), badge(r.situacao)];
-    if (p === 'vacinas') cells = [esc(r.nomeVacina), esc(displayName('animais', r.animalId)), esc(displayName('veterinarios', r.veterinarioId)), fmtDate(r.dataAplicacao), r.antirrabica ? 'Sim' : 'Não', badge(r.situacao)];
+    if (p === 'vacinas') cells = [`<strong>${esc(r.nomeVacina)}</strong><div class="muted">${esc(displayName('veterinarios', r.veterinarioId))}</div>`, esc(displayName('animais', r.animalId)), fmtDate(r.dataAplicacao), fmtDate(r.dataProximaDose), r.antirrabica ? 'Sim' : 'Não', badge(r.situacao)];
     if (p === 'especies') cells = [`<strong>${esc(r.nome)}</strong>`, esc(r.descricao), badge(r.situacao)];
     if (p === 'racas') cells = [`<strong>${esc(r.nome)}</strong>`, esc(r.especieNome || displayName('especies', r.especieId)), esc(r.descricao), badge(r.situacao)];
 
     const extra = p === 'animais'
-        ? `<button class="table-action" onclick="openMicrochip(${r.id})">Microchip</button><button class="table-action" onclick="showHistory(${r.id})">Histórico</button>`
+        ? `<button class="table-action" onclick="openMicrochip(${r.id})">Microchip</button><button class="table-action" onclick="showHistory(${r.id})">Prontuário</button>`
         : '';
     return `<tr data-search="${esc(JSON.stringify(r).toLowerCase())}">${cells.map(c => `<td>${c}</td>`).join('')}<td><div class="actions">${extra}<button class="table-action" onclick="editRecord('${p}',${r.id})">Editar</button><button class="table-action" onclick="deleteRecord('${p}',${r.id})">Excluir</button></div></td></tr>`;
 }
@@ -198,9 +237,36 @@ function render() {
     if (search) search.addEventListener('input', () => { $$('#tableBody tr').forEach(tr => tr.hidden = !tr.dataset.search.includes(search.value.toLowerCase())); });
 }
 
+async function refreshIntegrations() {
+    await load('integracoes');
+    render();
+    toast('Status das integrações atualizado.');
+}
+
 function renderIntegrations() {
     const list = rowsFor('integracoes');
-    return `<div class="welcome"><div><h2>Integração com o governo</h2><p>Solicite e acompanhe os registros enviados à integração externa.</p></div><button class="btn btn-primary" onclick="openIntegration()">＋ Nova solicitação</button></div><div class="table-card">${list.length ? list.map(i => `<div class="integration-card"><div><b>${esc(titleCase(i.tipoOperacao))}</b><div class="muted">Animal #${esc(i.animalId)} • Solicitação ${fmtDate(i.dataSolicitacao)} • Tentativas: ${esc(i.tentativas ?? 0)}</div><small class="muted">${esc(i.mensagemErro || i.protocoloExterno || 'Sem mensagem adicional')}</small></div><div>${badge(i.situacao)}</div></div>`).join('') : '<div class="empty">Nenhuma solicitação de integração registrada.</div>'}</div>`;
+    return `
+        <div class="welcome">
+            <div>
+                <h2>Integração com o governo</h2>
+                <p>Acompanhe os envios de animais e vacinas antirrábicas ao serviço governamental.</p>
+            </div>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+                <button class="btn btn-light" onclick="refreshIntegrations()">↻ Atualizar status</button>
+                <button class="btn btn-primary" onclick="openIntegration()">＋ Nova solicitação</button>
+            </div>
+        </div>
+        <div class="table-card">
+            ${list.length ? list.map(i => `
+                <div class="integration-card">
+                    <div>
+                        <b>${esc(titleCase(i.tipoOperacao))} — ${esc(displayName('animais', i.animalId))}</b>
+                        <div class="muted">Animal #${esc(i.animalId)} • Solicitação: ${fmtDate(i.dataSolicitacao)} • Tentativas: ${esc(i.tentativas ?? 0)}</div>
+                        <small class="muted">Chave: ${esc(i.chaveIdempotencia || '—')} • ${esc(i.mensagemErro || (i.protocoloExterno ? `Protocolo: ${i.protocoloExterno}` : 'Aguardando resposta'))}</small>
+                    </div>
+                    <div>${badge(i.situacao)}</div>
+                </div>`).join('') : '<div class="empty">Nenhuma solicitação de integração registrada.</div>'}
+        </div>`;
 }
 
 function fieldHtml(f, value = '') {
@@ -280,7 +346,7 @@ async function saveEntity(event) {
     event.preventDefault();
     const page = state.editing, cfg = configs[page], values = formObject(event.currentTarget);
     try {
-        let payload = { ...values };
+        let payload = {...values};
         for (const f of cfg.fields) {
             const [name, , type] = f;
             if (type === 'number' && payload[name] === '') payload[name] = null;
@@ -289,16 +355,39 @@ async function saveEntity(event) {
         }
         if (page === 'vacinas') payload.antirrabica = payload.antirrabica === 'true';
         if (page === 'tutores') {
-            const address = { cep: payload.cep, logradouro: payload.logradouro, numero: payload.numero, complemento: payload.complemento, bairro: payload.bairro, cidade: payload.cidade, uf: payload.uf };
-            const saved = await api(ENDPOINTS.enderecos, { method: 'POST', body: JSON.stringify(address) });
+            const address = {
+                cep: payload.cep,
+                logradouro: payload.logradouro,
+                numero: payload.numero,
+                complemento: payload.complemento,
+                bairro: payload.bairro,
+                cidade: payload.cidade,
+                uf: payload.uf
+            };
+            const saved = await api(ENDPOINTS.enderecos, {method: 'POST', body: JSON.stringify(address)});
             payload.enderecoId = saved.id;
-            delete payload.cep; delete payload.logradouro; delete payload.numero; delete payload.complemento; delete payload.bairro; delete payload.cidade; delete payload.uf;
+            delete payload.cep;
+            delete payload.logradouro;
+            delete payload.numero;
+            delete payload.complemento;
+            delete payload.bairro;
+            delete payload.cidade;
+            delete payload.uf;
+        }
+        if (page === 'veterinarios') {
+            if (!state.editingId && !payload.senha) {
+                throw new Error('Informe a senha inicial para cadastrar o veterinário.');
+            }
+            if (state.editingId && !payload.senha) {
+                delete payload.senha;
+            }
         }
         const url = endpoint(page) + (state.editingId ? `/${state.editingId}` : '');
-        await api(url, { method: state.editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+        await api(url, {method: state.editingId ? 'PUT' : 'POST', body: JSON.stringify(payload)});
         $('#formDialog').close();
         toast(`${cfg.singular[0].toUpperCase() + cfg.singular.slice(1)} salvo com sucesso.`);
         await load(page);
+        if (page === 'vacinas') await loadCollection('integracoes');
         render();
     } catch (e) {
         toast(e.message, 'error');
@@ -324,23 +413,65 @@ function openMicrochip(animalId) {
     $('#modalEyebrow').textContent = 'IDENTIFICAÇÃO RFID';
     $('#modalTitle').textContent = `Vincular microchip ao animal #${animalId}`;
     $('#saveButton').textContent = 'Vincular microchip';
-    $('#modalFields').innerHTML = `<div class="field full"><label>Código único do microchip *</label><input name="codigoMicrochip" required maxlength="80" placeholder="Digite ou leia o código RFID"></div><div class="field full"><label>Veterinário responsável *</label><select name="veterinarioId" required><option value="">Selecione...</option>${vets.map(v => `<option value="${v.id}" ${String(v.id) === String(state.activeVeterinarianId) ? 'selected' : ''}>${esc(v.nomeCompleto)} — CRMV ${esc(v.crmvNumero)}/${esc(v.crmvUf)}</option>`).join('')}</select></div><div class="field full"><small>O vínculo anterior deve permanecer no histórico. A API recebe o ID do veterinário e o código do microchip.</small></div>`;
+    $('#modalFields').innerHTML = `<div class="field full"><label>Código único do microchip *</label><input name="codigoMicrochip" required maxlength="80" placeholder="Digite ou leia o código RFID"></div><div class="field full"><label>Veterinário responsável *</label><select name="veterinarioId" required><option value="">Selecione...</option>${vets.map(v => `<option value="${v.id}" ${String(v.id) === String(state.activeVeterinarianId) ? 'selected' : ''}>${esc(v.nomeCompleto)} — CRMV ${esc(v.crmvNumero)}/${esc(v.crmvUf)}</option>`).join('')}</select></div><div class="field full"><small>O vínculo anterior permanece no histórico de rastreabilidade.</small></div>`;
     state.editing = 'microchip';
     state.editingId = animalId;
     $('#formDialog').showModal();
 }
 
+function switchRecordTab(tabName) {
+    $$('.record-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+    $$('.record-pane').forEach(pane => pane.classList.toggle('active', pane.id === `pane-${tabName}`));
+}
+
 async function showHistory(animalId) {
-    $('#historyContent').innerHTML = '<div class="loading">Consultando histórico...</div>';
+    const animal = rowsFor('animais').find(a => a.id === animalId);
+    $('#historyModalTitle').textContent = animal ? `Prontuário — ${animal.nome}` : `Prontuário — Animal #${animalId}`;
+    $('#historyContent').innerHTML = '<div class="loading">Carregando prontuário completo...</div>';
     $('#historyDialog').showModal();
+
+    await Promise.all(['consultas', 'vacinas', 'integracoes'].map(loadCollection));
+
+    let microchips = [];
     try {
-        const list = await api(`/api/animais/${animalId}/microchip/historico`);
-        $('#historyContent').innerHTML = list.length
-            ? list.map(x => `<div class="history-item"><div><b>${esc(x.codigoMicrochip)}</b><div class="muted">Vínculo: ${esc(new Date(x.dataVinculo).toLocaleString('pt-BR'))}</div><small class="muted">Veterinário #${esc(x.veterinarioId)}</small></div><div>${x.dataFim ? `<span class="badge warn">Encerrado ${fmtDate(x.dataFim)}</span>` : '<span class="badge">Ativo</span>'}</div></div>`).join('')
-            : '<div class="empty">Nenhum microchip vinculado a este animal.</div>';
-    } catch (e) {
-        $('#historyContent').innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        microchips = await api(`/api/animais/${animalId}/microchip/historico`);
+        if (!Array.isArray(microchips)) microchips = [];
+    } catch {
+        microchips = [];
     }
+
+    const consultas = rowsFor('consultas').filter(c => String(c.animalId) === String(animalId));
+    const vacinas = rowsFor('vacinas').filter(v => String(v.animalId) === String(animalId));
+    const integracoes = rowsFor('integracoes').filter(i => String(i.animalId) === String(animalId));
+
+    const chipHtml = microchips.length
+        ? microchips.map(x => `<div class="history-item"><div><b>${esc(x.codigoMicrochip)}</b><div class="muted">Vínculo: ${esc(new Date(x.dataVinculo).toLocaleString('pt-BR'))}</div><small class="muted">${esc(displayName('veterinarios', x.veterinarioId))}</small></div><div>${x.dataFim ? `<span class="badge warn">Encerrado ${fmtDate(x.dataFim)}</span>` : '<span class="badge">Ativo</span>'}</div></div>`).join('')
+        : '<div class="empty">Nenhum microchip vinculado a este animal.</div>';
+
+    const consultasHtml = consultas.length
+        ? consultas.map(c => `<div class="history-item"><div><b>${esc(c.motivo)}</b><div class="muted">${esc(String(c.dataHora || '').replace('T', ' ').slice(0, 16))} • ${esc(displayName('veterinarios', c.veterinarioId))}</div><small class="muted">Diagnóstico: ${esc(c.diagnostico || '—')} | Tratamento: ${esc(c.tratamento || '—')}</small></div><div>${badge(c.situacao)}</div></div>`).join('')
+        : '<div class="empty">Nenhuma consulta registrada para este animal.</div>';
+
+    const vacinasHtml = vacinas.length
+        ? vacinas.map(v => `<div class="history-item"><div><b>${esc(v.nomeVacina)} ${v.antirrabica ? '(Antirrábica)' : ''}</b><div class="muted">Aplicação: ${fmtDate(v.dataAplicacao)} • Lote: ${esc(v.numeroLote)} (${esc(v.fabricante)})</div><small class="muted">Próxima dose: ${fmtDate(v.dataProximaDose)}</small></div><div>${badge(v.situacao)}</div></div>`).join('')
+        : '<div class="empty">Nenhuma vacina registrada para este animal.</div>';
+
+    const govHtml = integracoes.length
+        ? integracoes.map(i => `<div class="history-item"><div><b>${esc(titleCase(i.tipoOperacao))}</b><div class="muted">Solicitado em: ${fmtDate(i.dataSolicitacao)} • Tentativas: ${esc(i.tentativas ?? 0)}</div><small class="muted">${esc(i.mensagemErro || (i.protocoloExterno ? `Protocolo: ${i.protocoloExterno}` : 'Sem protocolo ainda'))}</small></div><div>${badge(i.situacao)}</div></div>`).join('')
+        : '<div class="empty">Nenhuma comunicação governamental registrada para este animal.</div>';
+
+    $('#historyContent').innerHTML = `
+        <div class="record-tabs">
+            <button type="button" class="record-tab active" data-tab="chips" onclick="switchRecordTab('chips')">Microchips (${microchips.length})</button>
+            <button type="button" class="record-tab" data-tab="consultas" onclick="switchRecordTab('consultas')">Consultas (${consultas.length})</button>
+            <button type="button" class="record-tab" data-tab="vacinas" onclick="switchRecordTab('vacinas')">Vacinas (${vacinas.length})</button>
+            <button type="button" class="record-tab" data-tab="governo" onclick="switchRecordTab('governo')">Integração Gov (${integracoes.length})</button>
+        </div>
+        <div class="record-pane active" id="pane-chips">${chipHtml}</div>
+        <div class="record-pane" id="pane-consultas">${consultasHtml}</div>
+        <div class="record-pane" id="pane-vacinas">${vacinasHtml}</div>
+        <div class="record-pane" id="pane-governo">${govHtml}</div>
+    `;
 }
 
 async function openIntegration() {
@@ -350,7 +481,7 @@ async function openIntegration() {
     $('#modalEyebrow').textContent = 'SERVIÇO EXTERNO';
     $('#modalTitle').textContent = 'Nova solicitação';
     $('#saveButton').textContent = 'Enviar solicitação';
-    $('#modalFields').innerHTML = `<div class="field"><label>Animal *</label><select name="animalId" required>${animals.map(a => `<option value="${a.id}">${esc(a.nome)} (#${a.id})</option>`).join('')}</select></div><div class="field"><label>Tipo de operação *</label><select name="tipoOperacao" required><option value="CADASTRO_ANIMAL">Cadastro de animal</option><option value="ATUALIZACAO_ANIMAL">Atualização de animal</option><option value="VACINA_ANTIRRABICA">Vacina antirrábica</option></select></div><div class="field"><label>ID da vacina (quando aplicável)</label><select name="vacinaId"><option value="">Não se aplica</option>${rowsFor('vacinas').filter(v => v.antirrabica).map(v => `<option value="${v.id}">#${v.id} — ${esc(v.nomeVacina)}</option>`).join('')}</select></div><div class="field"><label>Chave de idempotência</label><input name="chaveIdempotencia" placeholder="Opcional"></div>`;
+    $('#modalFields').innerHTML = `<div class="field"><label>Animal *</label><select name="animalId" required>${animals.map(a => `<option value="${a.id}">${esc(a.nome)} (#${a.id})</option>`).join('')}</select></div><div class="field"><label>Tipo de operação *</label><select name="tipoOperacao" required><option value="CADASTRO_ANIMAL">Cadastro de animal</option><option value="ATUALIZACAO_ANIMAL">Atualização de animal</option><option value="VACINA_ANTIRRABICA">Vacina antirrábica</option></select></div><div class="field"><label>Vacina antirrábica (quando aplicável)</label><select name="vacinaId"><option value="">Não se aplica</option>${rowsFor('vacinas').filter(v => v.antirrabica).map(v => `<option value="${v.id}">#${v.id} — ${esc(v.nomeVacina)} (${esc(displayName('animais', v.animalId))})</option>`).join('')}</select></div><div class="field"><label>Chave de idempotência</label><input name="chaveIdempotencia" placeholder="Gerada automaticamente se vazio"></div>`;
     state.editing = 'integracao';
     state.editingId = null;
     $('#formDialog').showModal();
@@ -367,6 +498,9 @@ async function saveSpecial(event) {
         } else {
             v.animalId = Number(v.animalId);
             v.vacinaId = v.vacinaId ? Number(v.vacinaId) : null;
+            if (!v.chaveIdempotencia || !v.chaveIdempotencia.trim()) {
+                v.chaveIdempotencia = `WEB-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            }
             await api(ENDPOINTS.integracoes, { method: 'POST', body: JSON.stringify(v) });
             toast('Solicitação registrada.');
         }
@@ -417,5 +551,7 @@ window.editRecord = editRecord;
 window.deleteRecord = deleteRecord;
 window.openMicrochip = openMicrochip;
 window.showHistory = showHistory;
+window.switchRecordTab = switchRecordTab;
 window.openIntegration = openIntegration;
+window.refreshIntegrations = refreshIntegrations;
 init();
