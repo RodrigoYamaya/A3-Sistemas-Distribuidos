@@ -6,6 +6,15 @@ from repository import animal_repository
 from models.animal_model import AnimalGoverno
 from schemas.animal_schema import AnimalIn
 
+def cadastrar_animal(db: Session, data: AnimalIn):
+    existente = animal_repository.buscar_por_microchip(db, data.microchip)
+    if existente:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Já existe um animal cadastrado com o microchip {data.microchip} na base governamental."
+        )
+    return atualizar_ou_cadastrar_animal(db, data.microchip, data)
+
 def consultar_animal(db: Session, microchip: str):
     animal = animal_repository.buscar_por_microchip(db, microchip)
     if not animal:

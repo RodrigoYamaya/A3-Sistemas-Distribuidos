@@ -24,7 +24,7 @@ def listar_animais(db: Session = Depends(get_db)):
 @router.post("/animais", tags=["Animais"], status_code=201)
 def cadastrar_animal(data: AnimalIn, db: Session = Depends(get_db)):
     config_service.ensure_available(db)
-    return animal_service.atualizar_ou_cadastrar_animal(db, data.microchip, data)
+    return animal_service.cadastrar_animal(db, data)
 
 @router.put("/animais/{microchip}", tags=["Animais"])
 def atualizar_ou_cadastrar_animal(microchip: str, data: AnimalIn, db: Session = Depends(get_db)):
