@@ -8,13 +8,13 @@
   },
   "item": [
     {
-      "name": "1) cadastrar veterinario",
+      "name": "1) login de veterinario ativo e com senha confirmada",
       "request": {
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"nomeCompleto\": \"Dra. Mariana Costa\",\r\n  \"cpf\": \"39053344705\",\r\n  \"crmvNumero\": \"98765\",\r\n  \"crmvUf\": \"RJ\",\r\n  \"email\": \"mariana.costa@nexovet.com\",\r\n  \"telefone\": \"21999991111\",\r\n  \"senha\": \"Senha123\"\r\n}",
+          "raw": "{\r\n  \"email\": \"peixoto@clinica.com\",\r\n  \"senha\": \"senha0966\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -22,7 +22,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8081/api/veterinarios",
+          "raw": "http://localhost:8081/api/veterinarios/login",
           "protocol": "http",
           "host": [
             "localhost"
@@ -30,20 +30,21 @@
           "port": "8081",
           "path": [
             "api",
-            "veterinarios"
+            "veterinarios",
+            "login"
           ]
         }
       },
       "response": []
     },
     {
-      "name": "3) bloqueio senha incorreto do veterinario",
+      "name": "3) bloqueio de veterinario com senha nao confirmada",
       "request": {
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"email\": \"mariana.costa@nexovet.com\",\r\n  \"senha\": \"Senha123\"\r\n}",
+          "raw": "{\r\n  \"email\": \"itachi@hotmail.com\",\r\n  \"senha\": \"brasil321\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -73,7 +74,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"nomeCompleto\": \"Dra. Mariana Costa\",\r\n  \"cpf\": \"39053344705\",\r\n  \"crmvNumero\": \"98765\",\r\n  \"crmvUf\": \"RJ\",\r\n  \"email\": \"mariana.costa@nexovet.com\",\r\n  \"telefone\": \"21999991111\",\r\n  \"situacao\": \"INATIVO\"\r\n}",
+          "raw": "{\r\n    \"nomeCompleto\": \"Dr madara\",\r\n    \"cpf\": \"88017164009\",\r\n    \"crmvNumero\": \"3218\",\r\n    \"crmvUf\": \"RJ\",\r\n    \"email\": \"madara@hotmail.com\",\r\n    \"telefone\": \"2188672520\",\r\n    \"situacao\": \"INATIVO\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -81,7 +82,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8081/api/veterinarios/16",
+          "raw": "http://localhost:8081/api/veterinarios/17",
           "protocol": "http",
           "host": [
             "localhost"
@@ -90,7 +91,7 @@
           "path": [
             "api",
             "veterinarios",
-            "16"
+            "17"
           ]
         }
       },
@@ -794,6 +795,36 @@
             "api",
             "governo",
             "vacinacoes-antirrabicas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2b)verificar bloqueio veterinario inativo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"madara@hotmail.com\",\r\n  \"senha\": \"brasil123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8081/api/veterinarios/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8081",
+          "path": [
+            "api",
+            "veterinarios",
+            "login"
           ]
         }
       },
