@@ -1,7 +1,7 @@
-# Front-end Web — VetCare
+# Front-end Web — NexoVet
 
 ## Visão Geral
-Interface web do sistema **VetCare**, construída em **HTML5**, **CSS3** e **JavaScript** puros (`login.html`, `index.html`, `styles.css` e `app.js`)
+Interface web do sistema **NexoVet**, construída em **HTML5**, **CSS3** e **JavaScript** puros (`login.html`, `index.html`, `styles.css` e `app.js`)
 
 ## Objetivo
 Disponibilizar uma interface responsiva e direta para que os veterinários operem os cadastros da clínica, registrem atendimentos e acompanhem o retorno das integrações externas.
