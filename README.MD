@@ -1,4 +1,4 @@
-# Guia de Instalação e Execução — NexoVet
+# Guia de Instalação e Execução — NexoVet (Clínica Vetérinária)
 
 Manual passo a passo para configurar, iniciar e testar localmente os três módulos do sistema: **API Governamental (Python)**, **API Privada da Clínica (Java)** e **Front-end Web (HTML/CSS/JS)**.
 
