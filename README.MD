@@ -183,7 +183,7 @@ Por regra de segurança da aplicação, um veterinário só consegue fazer login
 Com ambos os serviços ativos, todos os endpoints podem ser inspecionados e executados direto no navegador:
 
 - **API da Clínica (8081):** `http://localhost:8081/swagger-ui/index.html`
-- **API Governamental (8082):** `http://localhost:8082/docs`
+- **API Governamental (8082):** `http://localhost:8082/docs`[.idea](.idea)
 
 ### 6.3. Executar a coleção de testes no Postman
 
