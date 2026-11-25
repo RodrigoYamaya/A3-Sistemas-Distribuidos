@@ -1,4 +1,4 @@
-# API Privada da Clínica — VetCare
+# API Privada da Clínica — NexoVet
 
 ## Visão Geral
 Serviço principal de back-end do sistema **clinica-vet**, responsável por centralizar as regras de negócio da clínica veterinária, a persistência dos dados e a comunicação com APIs externas.
